@@ -88,6 +88,10 @@ const categoryCreateValidator = [
     check('title', 'Title is required').notEmpty()
 ]
 
+const blogValidator = [
+    check('title', 'Title is required').notEmpty(),
+]
+
 module.exports = {
     validate,
     userSignUpValidator,
@@ -96,5 +100,6 @@ module.exports = {
     forgotPasswordValidator,
     resetPasswordValidator,
     bannerValidator,
-    categoryCreateValidator
+    categoryCreateValidator,
+    blogValidator
 }
