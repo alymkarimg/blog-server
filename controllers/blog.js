@@ -4,6 +4,12 @@ exports.readOne = (req, res) => {
     res.json('blog hello world');
 }
 
+exports.readAll = async (req, res) => {
+    var blogs = await Blog.find({});
+    await blogs.populate('category').execPopulate();
+    res.json({ blogs });
+}
+
 exports.create = async function (req, res) {
 
     try {
@@ -27,4 +33,21 @@ exports.create = async function (req, res) {
 
     }
 
+}
+
+exports.deleteSelected = async function (req, res) {
+    var selectedIDs = req.body.selected.map((blog) => {
+        return blog.id
+    });
+
+    try {
+        await Blog.deleteMany({
+            _id: {
+                $in: selectedIDs
+            }
+        })
+    } catch (e) {
+        res.json({errors:[{ message: "Error deleting blog articles in database" }]})
+    }
+    res.json({message: "Deleted blogs successfully"})
 }
