@@ -5,9 +5,16 @@ exports.readOne = (req, res) => {
 }
 
 exports.readAll = async (req, res) => {
-    var blogs = await Blog.find({});
-    await blogs.populate('category').execPopulate();
-    res.json({ blogs });
+    var blogs = await Blog.find({})
+
+    blogs.forEach(async (blog) => {
+        await blog.populate('categories.category').execPopulate();
+    })
+
+    var prototype = Blog.schema.paths 
+
+    return res.json({ blogs, prototype });
+
 }
 
 exports.create = async function (req, res) {
@@ -47,7 +54,7 @@ exports.deleteSelected = async function (req, res) {
             }
         })
     } catch (e) {
-        res.json({errors:[{ message: "Error deleting blog articles in database" }]})
+        res.json({ errors: [{ message: "Error deleting blog articles in database" }] })
     }
-    res.json({message: "Deleted blogs successfully"})
+    res.json({ message: "Deleted blogs successfully" })
 }

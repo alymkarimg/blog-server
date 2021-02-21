@@ -16,6 +16,11 @@ const blogSchema = new mongoose.Schema({
         unique: true,
         index: true,
     },
+    categories: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true
+    }],
     editableArea: { type: mongoose.Schema.Types.ObjectId, ref: 'EditableArea', required: true },
     mtitle: {
         type: String,
@@ -28,12 +33,7 @@ const blogSchema = new mongoose.Schema({
     image: {
         type: String,
         trim: true
-    },
-    categories: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Category',
-        required: true
-    }],
+    }, 
     author: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
