@@ -5,13 +5,13 @@ const validate = (req, res, next) => {
 
     const errors = validationResult(req)
 
-    errors.errors.forEach(function(error, index){
-        if(error.nestedErrors){
-            error.nestedErrors.forEach(function(nestedError){
-                if(nestedError.msg != "Invalid value")
-                errors.errors.push(nestedError)
+    errors.errors.forEach(function (error, index) {
+        if (error.nestedErrors) {
+            error.nestedErrors.forEach(function (nestedError) {
+                if (nestedError.msg != "Invalid value")
+                    errors.errors.push(nestedError)
             })
-        errors.errors.splice(index, 1);
+            errors.errors.splice(index, 1);
         }
     })
 
@@ -19,13 +19,12 @@ const validate = (req, res, next) => {
         return next()
     }
     const extractedErrors = []
-    errors.array().map(err => extractedErrors.push({
-        message: err.msg
-        // [err.param]
-    }))
+    errors.array().map(err => extractedErrors.push(
+        err.msg
+    ))
 
     return res.status(422).json({
-        errors: extractedErrors,
+        err: extractedErrors,
     })
 }
 
@@ -90,6 +89,48 @@ const categoryCreateValidator = [
 
 const blogValidator = [
     check('title', 'Title is required').notEmpty(),
+    check('publishedDate').custom((value, { req, loc, path }) => {
+        if (value == undefined) return Promise.reject('Published Date is required');
+        const date = new Date(value);
+        if (!date.getTime()) return Promise.reject('Published Date is required');
+        var testDate = date.toISOString().slice(0, 16);
+        if (testDate === value) {
+            return true
+        }
+        else {
+            return false
+        }
+    }),
+    check('author', 'Author is required').notEmpty(),
+    // image validator - yay
+    check('image').custom((value, { req }) => {
+        if (req.files) {
+            var validationResult = [];
+            for (const fileProperty in req.files) {
+                var file = req.files[fileProperty]
+                var extension = (file.name.substr(file.name.lastIndexOf('.') + 1)).toLowerCase();
+                switch (extension) {
+                    case "jpg":
+                         validationResult.push(true);
+                         break
+                    case "jpeg":
+                        validationResult.push(true);
+                         break
+                    case "png":
+                        validationResult.push(true);
+                         break
+                    default:
+                        return false;
+                }
+            }
+            // if one false value is returned, fails validatiom
+            console.log(!validationResult.includes(q => q == false))
+            return !validationResult.includes(q => q == false)
+        } else {
+            return true
+        }
+    })
+
 ]
 
 module.exports = {

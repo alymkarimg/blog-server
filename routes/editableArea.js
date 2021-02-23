@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
-const { saveEditableArea, loadEditableArea, uploadImage } = require('../controllers/editableArea');
+const { saveEditableArea, loadEditableArea } = require('../controllers/editableArea');
+const { uploadImage } = require('../helpers/imageUploader');
 const { requireSignin, isAdmin } = require('../controllers/auth');
 const { parse } = require('../helpers/formParser');
 

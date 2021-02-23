@@ -3,7 +3,8 @@ const router = express.Router();
 
 // contollers
 var { readOne, readAll, create, deleteSelected  } = require('../controllers/blog')
-var { requireSignin, validateAuthToken, isAdmin, } = require('../controllers/auth')
+var { requireSignin, validateAuthToken, isAdmin } = require('../controllers/auth')
+var { uploadImage } = require('../helpers/ImageUploader')
 var { parse, validate } = require('../helpers/formParser')
 var { blogValidator, validate } = require('../helpers/validator')
 

@@ -1,36 +1,51 @@
 const Blog = require("../models/Blog");
+const { errorHandler } = require('../helpers/dbErrorHandler')
+const { uploadImage } = require('../helpers/imageUploader')
 
 exports.readOne = (req, res) => {
     res.json('blog hello world');
 }
 
 exports.readAll = async (req, res) => {
-    var blogs = await Blog.find({})
+    try {
+        var blogs = await Blog.find({}).populate("categories").exec();
 
-    blogs.forEach(async (blog) => {
-        await blog.populate('categories.category').execPopulate();
-    })
+        var prototype = Blog.schema._indexedpaths.map(q => Object.keys(q[0])[0])
 
-    var prototype = Blog.schema.paths 
+        if (Blog.schema.$timestamps) {
+            prototype = prototype.concat(["updatedAt", "createdAt"])
+        }
 
-    return res.json({ blogs, prototype });
+        return res.json({ blogs, prototype });
+
+    }
+    catch (e) {
+
+        return res.status(400).json({
+            err: errorHandler(e)
+        });
+
+    }
 
 }
 
-exports.create = async function (req, res) {
+exports.create = async function (req, res, next) {
 
     try {
-        var slug = body.title
-        var blog = await Blog.findOne({ slug });
+        var blog = await Blog.findOne({ slug: req.body.slug });
         if (blog) {
             return res.status(400).json({
-                errors: [{ message: 'Title is taken' }],
+                err: ['Title is taken'],
             })
         }
 
-        var newBlog = await Blog.createBlog(req.body, slug);
+        // upload the image
+        await uploadImage(req, res, next, "blog");
+
+        var newBlog = await Blog.createBlog(req.body);
         await newBlog.save();
-        return res.status(200).json({ newBlog });
+
+        res.status(200).json({ newBlog });
 
     } catch (e) {
 

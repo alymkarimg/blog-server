@@ -11,7 +11,6 @@ require('dotenv').config();
 
 // controllers and helpers
 const User = require('../models/user')
-const { userById } = require('../controllers/user')
 const { errorHandler } = require('../helpers/dbErrorHandler')
 const { createJwt } = require('../helpers/authentication')
 

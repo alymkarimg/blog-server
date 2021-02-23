@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const EditableArea = require('./editableArea')
+const Category = require('./category')
 require("dotenv").config();
 const { ObjectId } = mongoose.Schema
 
@@ -10,6 +11,7 @@ const blogSchema = new mongoose.Schema({
         min: 3,
         max: 168,
         required: true,
+        index: true
     },
     slug: {
         type: String,
@@ -19,52 +21,69 @@ const blogSchema = new mongoose.Schema({
     categories: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
-        required: true
+        required: true,
+        index: true
     }],
-    editableArea: { type: mongoose.Schema.Types.ObjectId, ref: 'EditableArea', required: true },
+    editableArea: { type: mongoose.Schema.Types.ObjectId, ref: 'EditableArea', required: true, index: true },
     mtitle: {
         type: String,
-        trim: true
+        trim: true,
+        index: true
     },
     mdescription: {
         type: String,
-        trimg: true
+        trimg: true,
+        index: true
     },
-    image: {
+    images: [{
         type: String,
-        trim: true
-    }, 
+        trim: true,
+        index: true
+    }], 
     author: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+        type: String,
+        trim: true,
+        required: true,
+        index: true
+    },
+    publishedDate: {
+        type: Date,
+        trim: true,
+        required: true,
+        index: true
     }
 }, {
-    timestamps: false
+    timestamps: true,
 })
 
-blogSchema.statics.createBlog = async function (body, slug) {
+blogSchema.statics.createBlog = async function (body) {
 
     // // add an editable area whose pathname = blog editableArea and guid = blog {slug}, if it already exists, create a new one
-    var editableArea = await EditableArea.findOne({ guid: `blog ${slug}`, pathname: "blog editableArea" })
+    var editableArea = await EditableArea.findOne({ guid: `blog ${body.slug}`, pathname: "blog_editableArea" })
     if (!editableArea) {
         editableArea = new EditableArea({
-            content: "<p>Coming Soon</p>",
+            content: body.editableArea.data,
             pathname: "blog editableArea",
-            guid: `blog ${slug}`
+            guid: `blog ${body.slug}`
         });
         await editableArea.save();
     }
 
+    if(body.categories){
+        var categories = await Category.find({slug: {$in: body.categories}})
+    }
+
+
     var blog = new this({
         title: body.title,
-        slug,
+        slug: body.slug,
         editableArea,
         mtitle: body.title,
         mdescription: body.description,
-        image: body.image,
-        categories: body.categories,
-        author: body.author
+        images: body.image,
+        categories: categories,
+        author: body.author,
+        publishedDate: body.publishedDate
     })
 
     return blog;
