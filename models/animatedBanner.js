@@ -11,25 +11,18 @@ const animatedBannerSchema = new mongoose.Schema({
         unique: true
     },
     items: [{type: mongoose.Schema.Types.ObjectId, ref: 'AnimatedBannerItem'}],
-    captionPosition: {
-        type: String
-    },
-    mask: {
-        type: String
+    interval: {
+        type: Number
     }
 }, {
     timestamps: true
 })
 
-animatedBannerSchema.statics.createBanner = function (body) {
-
-    var captionPosition = body.captionPosition ? body.captionPosition : "centre";
+animatedBannerSchema.statics.createBanner = function (title) {
 
     var banner = new this({
-        title: body.title,
+        title,
         items: [],
-        captionPosition,
-        mask: body.mask,
     })
 
     return banner;
