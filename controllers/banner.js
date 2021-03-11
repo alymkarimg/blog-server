@@ -2,6 +2,7 @@ var AnimatedBanner = require('../models/animatedBanner');
 var AnimatedBannerItem = require('../models/animatedBannerItem');
 var EditableArea = require('../models/editableArea');
 const { errorHandler } = require('../helpers/dbErrorHandler');
+const { dynamicSort } = require('../helpers/sorting');
 const { body } = require('express-validator');
 const animatedBannerItem = require('../models/animatedBannerItem');
 const editableArea = require('../models/editableArea');
@@ -15,7 +16,10 @@ exports.loadAnimatedBanner = async function (req, res, next) {
     }
 
     await animatedBanner.populate('items').execPopulate();
-    await animatedBanner.populate('items.EditableArea').execPopulate();
+    await Promise.all(animatedBanner.items.map(async (bannerItem) => {
+        await bannerItem.populate('EditableArea').execPopulate();
+        return bannerItem
+    }))
 
     // if there are no items, create one 
     if (animatedBanner.items.length <= 0) {
@@ -30,19 +34,24 @@ exports.loadAnimatedBanner = async function (req, res, next) {
             await editableArea.save();
         }
 
-        var bannerItem = new AnimatedBannerItem({
-            pathname: animatedBanner.title,
-            guid: 0,
-            image: 'placeholder.png',
-            EditableArea: editableArea,
-            format: "image"
-        });
-
+        var bannerItem = await AnimatedBannerItem.findOne({ guid: `${0}`, pathname: animatedBanner.title })
+        if (!bannerItem) {
+            var bannerItem = new AnimatedBannerItem({
+                pathname: animatedBanner.title,
+                guid: 0,
+                image: 'placeholder.png',
+                EditableArea: editableArea,
+                format: "image"
+            });
+            await bannerItem.save();
+        }
         animatedBanner.items.push(bannerItem);
-        await bannerItem.save();
+        await animatedBanner.save();
     }
 
-    await animatedBanner.save();
+    // //order animatedbanner.items by guid
+    // animatedBanner.items.sort(dynamicSort("guid"));
+
     res.json(animatedBanner);
 }
 
@@ -76,12 +85,18 @@ exports.addSlides = async function (req, res, next) {
     if (animatedBanner) {
 
         await animatedBanner.populate('items').execPopulate();
-        await animatedBanner.populate('items.EditableArea').execPopulate();
+        await Promise.all(animatedBanner.items.map(async (bannerItem) => {
+            await bannerItem.populate('EditableArea').execPopulate();
+            return bannerItem
+        }))
 
         // slide number
+        // if length == 1, new slide guid = guid == 1
+        // if length == 2, new slide guide = guid == 2
         var slideNumber = animatedBanner.items.length;
 
         // if there is no editable area, create one 
+
         var editableArea = await EditableArea.findOne({ guid: `${slideNumber}`, pathname: animatedBanner.title })
         if (!editableArea) {
             editableArea = new EditableArea({
@@ -103,16 +118,15 @@ exports.addSlides = async function (req, res, next) {
                 EditableArea: editableArea,
                 format: "image"
             });
-            animatedBanner.items.push(bannerItem);
-            bannerItem.save();
         }
+        animatedBanner.items.push(bannerItem);
+        await bannerItem.save();
 
     } else {
         res.json({
             errors: [{ message: 'No banner with that title was found' }]
         })
     }
-
     await animatedBanner.save();
     res.json({ animatedBanner, message: "Slide added", length: animatedBanner.items.length });
 }
@@ -124,33 +138,23 @@ exports.deleteSlide = async function (req, res) {
         if (banner) {
 
             if (banner.items.length == 1) {
+
                 res.json({ banner, message: "Cannot delete the only slide." })
                 return
             }
             else {
-                await AnimatedBannerItem.deleteOne({ pathname: banner.title, guid: req.body.slideNumber })
-                await EditableArea.deleteOne({ pathname: banner.title, guid: req.body.slideNumber })
 
                 await banner.populate('items').execPopulate();
-                await banner.populate('items.EditableArea').execPopulate();
+                var bannerItems = banner.items
+
+                banner.items = await Promise.all(banner.items.map(async (bannerItem) => {
+                    await bannerItem.populate('EditableArea').execPopulate();
+                    return bannerItem
+
+                }))
 
                 // delete the deleted current slide from the list
                 banner.items = banner.items.filter(q => q.guid != (req.body.slideNumber))
-
-                // // renumber all items in the array
-                // await Promise.all(banner.items.forEach(async (element, index) => {
-
-                //     // find the editable area
-                //     var editableArea = element.EditableArea;
-
-                //     // set new indexes
-                //     editableArea.guid = index;
-                //     element.guid = index
-
-                //     await editableArea.save();
-                //     await element.save();
-                // })
-                // );
 
                 var items = await array_values(banner.items)
 
@@ -164,34 +168,37 @@ exports.deleteSlide = async function (req, res) {
 
                 res.json({ message: "Slide deleted", banner });
 
+                // await AnimatedBannerItem.deleteOne({ pathname: banner.title, guid: req.body.slideNumber })
+                await EditableArea.deleteOne({ pathname: banner.title, guid: req.body.slideNumber })
+
                 async function array_values(arrayObj) {
 
-                    var e = arrayObj.sort(dynamicSort("guid"))
+                    // editable area goes missing here?
+                    // number of slides, ID of slides
+                    // Write down the ids of the slides + number of slides
+                    // Write down the IDs after the slides are shuffled
+                    // editable area is not created?
+                    // check the ID's of the editable areas
+
+                    // shuffle slides
 
                     arrayObj.sort(dynamicSort("guid"))
+
+
                     await Promise.all(arrayObj.map(async (item, index) => {
-                        var area = await EditableArea.findOne({guid: item.guid, pathname: item.pathname})
+                        var area = await EditableArea.findOne({ guid: item.guid, pathname: item.pathname })
+
+                        if (!area) {
+                            console.log("no area found")
+                        }
+
                         area.guid = index
-                        await area.save();
                         item.guid = index;
-                        item.EditableArea.guid = index;
+
+                        await area.save();
+
                     }))
                     return arrayObj
-
-                    function dynamicSort(property) {
-                        var sortOrder = 1;
-                        if (property[0] === "-") {
-                            sortOrder = -1;
-                            property = property.substr(1);
-                        }
-                        return function (a, b) {
-                            /* next line works with strings and numbers, 
-                             * and you may want to customize it to your needs
-                             */
-                            var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
-                            return result * sortOrder;
-                        }
-                    }
                 };
 
             }
