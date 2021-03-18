@@ -2,19 +2,38 @@ var EditableArea = require('../models/editableArea');
 var async = require('async');
 const AWS = require('aws-sdk');
 
-exports.loadEditableArea = async function (req, res, next) {
-    var editableArea = await EditableArea.findOne({ pathname: req.body.pathname, guid: req.body.guid });
-    if (editableArea) {
-        res.json(editableArea);
-    } else {
-        editableArea = new EditableArea({
-            content: "<p>Coming Soon</p>",
-            pathname: req.body.pathname,
-            guid: req.body.guid
+exports.createPage = async function (req, res, next){
+    var page = await EditableArea.createPage(req.body)
+    console.log(page)
+    await page.save();
+    res.status(200).json(page);
+}
 
-        })
-        editableArea.save();
-        res.json(editableArea)
+exports.loadEditableArea = async function (req, res, next) {
+    if(req.body.pathname != "page"){
+        var editableArea = await EditableArea.findOne({ pathname: req.body.pathname, guid: req.body.guid });
+        if (editableArea) {
+            res.json(editableArea);
+        } else {
+            editableArea = new EditableArea({
+                content: "<p>Coming Soon</p>",
+                pathname: req.body.pathname,
+                guid: req.body.guid
+    
+            })
+            editableArea.save();
+            res.json(editableArea)
+        }
+    }
+    else {
+        var editableArea = await EditableArea.findOne({ pathname: req.body.pathname, guid: req.body.guid });
+        if (editableArea) {
+            res.json(editableArea);
+        } else {
+            res.json({
+                message: "no page with that URL was found"
+            })
+        }
     }
 }
 

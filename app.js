@@ -19,10 +19,6 @@ mongoose.connect(process.env.DB_CONNECT, {
     console.log(err)
 })
 
-// temp
-// require('./models/Category')
-// require('./models/AnimatedBannerItem')
-
 // cors - needs to be above routes
 if (process.env.NODE_ENV == "development") {
     app.use(cors({ origin: `${process.env.ClIENT_URL}` }))
@@ -39,6 +35,7 @@ const userRouter = require('./routes/user')
 const bannerRouter = require('./routes/banner')
 const editableAreaRouter = require('./routes/editableArea')
 const categoryRouter = require('./routes/category')
+const menuRouter = require('./routes/menu')
  
 app.use('/api/blogs', blogRouter)
 app.use('/api/user', userRouter)
@@ -46,6 +43,7 @@ app.use('/api/', authRouter)
 app.use('/api/editable-area', editableAreaRouter)
 app.use('/api/category', categoryRouter)
 app.use('/api/animated-banner', bannerRouter)
+app.use('/api/menu', menuRouter)
 
 
 // port
