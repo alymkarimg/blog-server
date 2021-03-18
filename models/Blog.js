@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const EditableArea = require('./editableArea')
-const Category = require('./category')
+const Category = require('./category');
+const AnimatedBanner = require('./animatedBanner');
 require("dotenv").config();
 const { ObjectId } = mongoose.Schema
 
@@ -35,11 +36,7 @@ const blogSchema = new mongoose.Schema({
         trimg: true,
         index: true
     },
-    images: [{
-        type: String,
-        trim: true,
-        index: true
-    }], 
+    animatedBanner: {type: mongoose.Schema.Types.ObjectId, ref: 'AnimatedBanner'},
     author: {
         type: String,
         trim: true,
@@ -69,6 +66,11 @@ blogSchema.statics.createBlog = async function (body) {
         await editableArea.save();
     }
 
+    var animatedBanner = await AnimatedBanner.findOne({title: `blog ${body.title}`}) 
+    if (!animatedBanner) {
+        animatedBanner = AnimatedBanner.createBanner( `blog ${body.title}`)
+    }
+
     if(body.categories){
         var categories = await Category.find({slug: {$in: body.categories}})
     }
@@ -80,7 +82,7 @@ blogSchema.statics.createBlog = async function (body) {
         editableArea,
         mtitle: body.title,
         mdescription: body.description,
-        images: body.image,
+        animatedBanner,
         categories: categories,
         author: body.author,
         publishedDate: body.publishedDate

@@ -16,10 +16,6 @@ const animatedBannerItem = new mongoose.Schema({
         type: String, 
         required: true 
     },
-    format: { 
-        type: String, 
-        required: true 
-    },
     EditableArea: {type: mongoose.Schema.Types.ObjectId, ref: 'EditableArea'}
 });
 

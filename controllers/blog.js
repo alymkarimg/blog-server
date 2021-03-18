@@ -1,6 +1,5 @@
 const Blog = require("../models/Blog");
 const { errorHandler } = require('../helpers/dbErrorHandler')
-const { uploadImage } = require('../helpers/imageUploader')
 
 exports.readOne = (req, res) => {
     res.json('blog hello world');
@@ -39,8 +38,7 @@ exports.create = async function (req, res, next) {
             })
         }
 
-        // upload the image
-        await uploadImage(req, res, next, "blog");
+        // await uploadImage(req, res, next, "blog");
 
         var newBlog = await Blog.createBlog(req.body);
         await newBlog.save();
