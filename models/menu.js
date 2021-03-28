@@ -1,8 +1,9 @@
 const { hasBrowserCrypto } = require('google-auth-library/build/src/crypto/crypto');
 const mongoose = require('mongoose');
-const category = require('./category');
+const Category = require('./category');
 require("dotenv").config();
 const { ObjectId } = mongoose.Schema
+const EditableArea = require('./editableArea')
 
 const menuSchema = new mongoose.Schema({
     title: {
@@ -10,9 +11,10 @@ const menuSchema = new mongoose.Schema({
         trim: true,
         required: true
     },
-    parentId: {
-        type: Number,
-        required: true
+    parent: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Menu',
+        index: true
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,
@@ -32,36 +34,39 @@ const menuSchema = new mongoose.Schema({
 
 menuSchema.statics.loadMenu = async function (list, parentId = null) {
 
-    const menuItems = await this.model('Menu').find()
-        .map(x => {
-            return {
-                id: x._id,
-                parentId: x.parentId,
-                active: x.active,
-                page: x.page,
-                list: null
+    let menuItems = await this.model('Menu').find({})
 
-            }
-        });
+    menuItems = menuItems.map(x => {
+        return {
+            id: x.id,
+            parent: x.parent,
+            title: x.title,
+            category: x.category,
+            url: x.url,
+            children: null
 
-    const menuTree = getMenuTree(menuItems)
-    return menuTree;
+        }
+    });
+
+    const menuTree = await this.model('Menu').getMenuTree(menuItems)
+
+    return { menuTree, menuItems };
 }
 
+menuSchema.statics.getMenuTree = async function (menuItems, parent = null) {
 
-menuSchema.statics.getMenuTree = async function (list, parentId = null) {
-
-    var menuTree = list.filter(q => q.parentId == parentId)
-        .map(x => {
+    var menuTree = await Promise.all(menuItems.filter(q => q.parent == parent)
+        .map(async x => {
+            var children = await this.model('Menu').getMenuTree(menuItems, x.id)
             return {
-                id: x._id,
-                parentId: x.parentId,
-                active: x.active,
-                page: x.page,
-                list: getMenuTree(list, _x.id)
-
+                id: x.id,
+                parent: x.parent,
+                title: x.title,
+                category: x.category,
+                url: x.url,
+                children
             }
-        })
+        }))
 
     // filter the list based 
 
@@ -73,17 +78,18 @@ menuSchema.statics.createMenuItem = async function (body) {
     // // add an editable area whose pathname = blog editableArea and guid = blog {slug}, if it already exists, create a new one
     var page = await EditableArea.findOne({ guid: body.url, pathname: "page" })
     if (!page) {
-       return "No page with that title exists, please select another page."
+        return { message: "No page with that title exists, please select another page." }
     }
 
-    var category = await category.findOne({ title: body.category, type: "menu" })
+    var category = await Category.findOne({ title: body.category, type: "menu" })
     if (!category) {
-       return "Please select a category"
+        return { message: "Please select a category" }
     }
+
 
     var menu = new this({
         title: body.title,
-        parentId: body.parentId,
+        parent: body.parent,
         category, // check if it exists, if not, return error
         url: body.url // check if it exists, if not, return error
     })
