@@ -9,7 +9,8 @@ const menuSchema = new mongoose.Schema({
     title: {
         type: String,
         trim: true,
-        required: true
+        required: true,
+        index: true
     },
     parent: {
         type: mongoose.Schema.Types.ObjectId,
@@ -25,7 +26,8 @@ const menuSchema = new mongoose.Schema({
     url: {
         type: String,
         trim: true,
-        required: true
+        required: true,
+        index: true
     }
 },
     {
