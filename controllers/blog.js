@@ -9,7 +9,7 @@ exports.readAll = async (req, res) => {
     try {
         var blogs = await Blog.find({}).populate("categories").exec();
 
-        var prototype = Blog.schema._indexedpaths.map(q => Object.keys(q[0])[0])
+        var prototype = Object.keys(Blog.schema.paths)
 
         if (Blog.schema.$timestamps) {
             prototype = prototype.concat(["updatedAt", "createdAt"])

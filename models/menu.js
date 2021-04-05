@@ -17,12 +17,6 @@ const menuSchema = new mongoose.Schema({
         ref: 'Menu',
         index: true
     },
-    category: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Category',
-        required: true,
-        index: true
-    },
     url: {
         type: String,
         trim: true,
@@ -31,7 +25,7 @@ const menuSchema = new mongoose.Schema({
     }
 },
     {
-        timestamps: false
+        timestamps: true
     })
 
 menuSchema.statics.loadMenu = async function (list, parentId = null) {
@@ -77,22 +71,9 @@ menuSchema.statics.getMenuTree = async function (menuItems, parent = null) {
 
 menuSchema.statics.createMenuItem = async function (body) {
 
-    // // add an editable area whose pathname = blog editableArea and guid = blog {slug}, if it already exists, create a new one
-    var page = await EditableArea.findOne({ guid: body.url, pathname: "page" })
-    if (!page) {
-        return { message: "No page with that title exists, please select another page." }
-    }
-
-    var category = await Category.findOne({ title: body.category, type: "menu" })
-    if (!category) {
-        return { message: "Please select a category" }
-    }
-
-
     var menu = new this({
         title: body.title,
         parent: body.parent,
-        category, // check if it exists, if not, return error
         url: body.url // check if it exists, if not, return error
     })
 

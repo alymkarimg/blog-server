@@ -18,7 +18,8 @@ exports.loadEditableArea = async function (req, res, next) {
             editableArea = new EditableArea({
                 content: "<p>Coming Soon</p>",
                 pathname: req.body.pathname,
-                guid: req.body.guid
+                guid: req.body.guid,
+                link: req.body.link
     
             })
             editableArea.save();
@@ -50,8 +51,9 @@ exports.saveEditableArea = async function (req, res, next) {
         });
 
         // save to db
-        if (editableArea && editableArea.content != element.data) {
+        if (editableArea && (editableArea.content != element.data) || (editableArea.link != element.link)) {
             editableArea.content = element.data;
+            editableArea.link = element.link;
             areasToSave.push(editableArea);
         }
     });

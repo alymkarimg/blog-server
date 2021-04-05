@@ -14,7 +14,11 @@ const editableAreaSchema = new mongoose.Schema({
     pathname: {
         type: String,
         trim: true,
-    }
+    },
+    link: {
+        type: String,
+        trim: true,
+    },
 }, {
     timestamps: false
 })
