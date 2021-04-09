@@ -69,6 +69,18 @@ menuSchema.statics.getMenuTree = async function (menuItems, parent = null) {
     return menuTree;
 }
 
+menuSchema.statics.saveNewMenuItems = (menuTree) => {
+    if (menuTree && menuTree.length > 0) {
+        menuTree.map(menuItem => {
+            console.log(menuItem.children)
+            if (menuItem.children && menuItem.children.length > 0) {
+                this.model('Menu').saveNewMenuItems(menuItem.children)
+            }
+            reorderedMenuItems.push(menuItem);
+        })
+    }
+}
+
 menuSchema.statics.createMenuItem = async function (body) {
 
     var menu = new this({

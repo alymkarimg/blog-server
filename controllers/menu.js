@@ -25,20 +25,7 @@ exports.loadMenuItems = async function (req, res, next) {
 exports.saveMenuTree = async function (req, res, next) {
     var menuTree = req.body.menuTree
     let reorderedMenuItems = [];
-
-    // cycle through menutree and save all values
-    const saveNewMenuItems = (menuTree) => {
-        if(menuTree && menuTree.length > 0) {
-            menuTree.map(menuItem => {
-                if (menuItem.children) {
-                    saveNewMenuItems(menuItem.children)
-                }
-                reorderedMenuItems.push(menuItem);
-            })
-        }
-    }
-
-    saveNewMenuItems(menuTree);
+    Menu.saveNewMenuItems(menuTree);
 
     await Promise.all(reorderedMenuItems.map(async (menuItem) => {
        await menuItem.save()
