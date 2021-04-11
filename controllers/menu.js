@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 var Menu = require('../models/menu');
 
 exports.createMenuItem = async function (req, res, next) {
@@ -23,13 +24,14 @@ exports.loadMenuItems = async function (req, res, next) {
 }
 
 exports.saveMenuTree = async function (req, res, next) {
-    var menuTree = req.body.menuTree
-    let reorderedMenuItems = [];
-    Menu.saveNewMenuItems(menuTree);
+    // set item.parent == destination parent.id
 
-    await Promise.all(reorderedMenuItems.map(async (menuItem) => {
-       await menuItem.save()
-    }))
+    var itemBeingMoved = await Menu.findOne({ _id: mongoose.Types.ObjectId(req.body.dragItem.id) });
+    if (req.body.dragItem.parent != req.body.destinationParent) {
+        itemBeingMoved.parent = req.body.destinationParent ? mongoose.Types.ObjectId(req.body.destinationParent.id) : null;
+        await itemBeingMoved.save()
+        res.json({loading: false})
+    }
 }
 
 exports.deleteMenuItem = async function (req, res, next) {

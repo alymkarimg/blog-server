@@ -36,6 +36,9 @@ const bannerRouter = require('./routes/banner')
 const editableAreaRouter = require('./routes/editableArea')
 const categoryRouter = require('./routes/category')
 const menuRouter = require('./routes/menu')
+const orderRouter = require('./routes/orderRoutes')
+const productRouter = require('./routes/productRoutes')
+
  
 app.use('/api/blogs', blogRouter)
 app.use('/api/user', userRouter)
@@ -44,6 +47,8 @@ app.use('/api/editable-area', editableAreaRouter)
 app.use('/api/category', categoryRouter)
 app.use('/api/animated-banner', bannerRouter)
 app.use('/api/menu', menuRouter)
+app.use('/api/order', orderRouter)
+app.use('/api/product', productRouter)
 
 
 // port
