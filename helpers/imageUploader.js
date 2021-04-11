@@ -8,7 +8,7 @@ let s3 = new AWS.S3({
 const { errorHandler } = require('../helpers/dbErrorHandler')
 const AnimatedBannerItem = require('../models/animatedBannerItem')
 
-async function uploadToS3(req, file, destFileName, fileProps) {
+async function uploadToS3(req, file, destFileName, fileProps, guid) {
     let uploadParams = { Bucket: process.env.BUCKET_NAME, Key: destFileName, Body: '' };
     let fileStream = fs.createReadStream(file.path);
     fileStream.on('error', function (err) {
@@ -20,12 +20,13 @@ async function uploadToS3(req, file, destFileName, fileProps) {
     if (fileProps) {
         req.urls.push({
             url: data.Location,
-            fileProps
+            fileProps,
+            guid
         })
     } else {
         req.urls.push(data.Location)
     }
-    await deleteFile(file.path);
+    // await deleteFile(file.path);
 }
 
 async function deleteFile(filePath) {
@@ -47,14 +48,13 @@ const uploadImages = async function (req, res, next, fileProps) {
                 if (i == fileProps[1])
                     var fileId = uuid.v4();
                 let filename;
-                console.log(req.body.animatedBanner)
                 if (fileProperty.endsWith(".mp4")) {
                     filename = `photos/${req.body.title}/${req.body.guid}/${fileId}.mp4`;
                 } else {
                     filename = `photos/${fileProps[0]}/${fileProps[1]}/${fileId}.jpg`;
                 }
                 file = req.files[fileProperty]
-                await uploadToS3(req, file, filename, fileProps)
+                await uploadToS3(req, file, filename, fileProps, req.body.guid);
             })
         )
     }
@@ -75,7 +75,7 @@ exports.uploadBannerImages = async function (req, res, next) {
             if (req.urls) {
                 req.urls.forEach((urlObject, index) => {
                     var fileProps = urlObject.fileProps
-                    if (fileProps[0] == bannerItem.pathname && fileProps[1] == bannerItem.guid) {
+                    if (bannerItem && fileProps[0] == bannerItem.pathname && fileProps[1] == bannerItem.guid) {
                         bannerItem.image = urlObject.url
                     }
                 })
@@ -89,6 +89,12 @@ exports.uploadBannerImages = async function (req, res, next) {
     await (async () => {
         next();
     })
+}
+
+exports.uploadBannerImageURLs = async function (req, res, next) {
+    await Promise.all(req.urls.map(async (urlObject) => {
+        await AnimatedBannerItem.findOneAndUpdate({pathname: urlObject.fileProps, guid: urlObject.guid}, {image: urlObject.url})
+    }))
 }
 
 exports.uploadImage = async function (req, res, next) {
@@ -105,7 +111,9 @@ exports.uploadImage = async function (req, res, next) {
                 }
                 filename = `photos/${req.body.animatedBanner.title}/${req.body.animatedBanner.items.guid}/${fileId}.jpg`;
                 file = req.files[fileProperty]
-                await uploadToS3(req, file, filename)
+                if(file){
+                    await uploadToS3(req, file, filename)
+                }
             })
         )
     }

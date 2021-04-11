@@ -7,7 +7,7 @@ const { body } = require('express-validator');
 const animatedBannerItem = require('../models/animatedBannerItem');
 const editableArea = require('../models/editableArea');
 const animatedBanner = require('../models/animatedBanner');
-const { uploadBannerImages } = require('../helpers/imageUploader')
+const { uploadBannerImages, uploadBannerImageURLs } = require('../helpers/imageUploader')
 
 exports.loadAnimatedBanner = async function (req, res, next) {
     var animatedBanner = await AnimatedBanner.findOne({ title: req.params.title });
@@ -221,12 +221,10 @@ exports.deleteSlide = async function (req, res) {
 
 exports.saveAnimatedBanners = async function (req, res, next) {
 
-    var banners = await AnimatedBanner.find();
-    var areasToSave = [];
-
     await uploadBannerImages(req, res, next);
 
-    // save all editable areas in array
+    // save all urls
+    await uploadBannerImageURLs(req, res, next)
 
     res.json(
         {
