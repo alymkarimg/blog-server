@@ -25,18 +25,6 @@ const blogSchema = new mongoose.Schema({
         required: true,
         index: true
     }],
-    editableArea: { type: mongoose.Schema.Types.ObjectId, ref: 'EditableArea', required: true, index: true },
-    mtitle: {
-        type: String,
-        trim: true,
-        index: true
-    },
-    mdescription: {
-        type: String,
-        trimg: true,
-        index: true
-    },
-    animatedBanner: {type: mongoose.Schema.Types.ObjectId, ref: 'AnimatedBanner'},
     author: {
         type: String,
         trim: true,
@@ -55,38 +43,32 @@ const blogSchema = new mongoose.Schema({
 
 blogSchema.statics.createBlog = async function (body) {
 
-    // // add an editable area whose pathname = blog editableArea and guid = blog {slug}, if it already exists, create a new one
-    var editableArea = await EditableArea.findOne({ guid: `blog ${body.slug}`, pathname: "blog_editableArea" })
-    if (!editableArea) {
-        editableArea = new EditableArea({
-            content: body.editableArea.data,
-            pathname: "blog editableArea",
-            guid: `blog ${body.slug}`
-        });
-        await editableArea.save();
-    }
-
-    var animatedBanner = await AnimatedBanner.findOne({title: `blog ${body.title}`}) 
-    if (!animatedBanner) {
-        animatedBanner = AnimatedBanner.createBanner( `blog ${body.title}`)
-    }
-
     if(body.categories){
         var categories = await Category.find({slug: {$in: body.categories}})
     }
 
-
     var blog = new this({
         title: body.title,
         slug: body.slug,
-        editableArea,
-        mtitle: body.title,
-        mdescription: body.description,
-        animatedBanner,
         categories: categories,
         author: body.author,
         publishedDate: body.publishedDate
     })
+
+    return blog;
+}
+
+blogSchema.methods.editBlog = async function (body) {
+
+    if(body.categories){
+        var categories = await Category.find({slug: {$in: body.categories}})
+    }
+        var blog = this
+        blog.title =  body.title,
+        blog.slug = body.slug,
+        blog.categories = categories,
+        blog.author =  body.author,
+        blog.publishedDate= body.publishedDate
 
     return blog;
 }

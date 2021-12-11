@@ -36,6 +36,7 @@ menuSchema.statics.loadMenu = async function (list, parentId = null) {
         return {
             id: x.id,
             parent: x.parent,
+            menu: 1,
             title: x.title,
             category: x.category,
             url: x.url,
@@ -51,6 +52,8 @@ menuSchema.statics.loadMenu = async function (list, parentId = null) {
 
 menuSchema.statics.getMenuTree = async function (menuItems, parent = null) {
 
+
+    console.log(await Promise.all(menuItems.filter(q => q.parent == parent)))
     var menuTree = await Promise.all(menuItems.filter(q => q.parent == parent)
         .map(async x => {
             var children = await this.model('Menu').getMenuTree(menuItems, x.id)

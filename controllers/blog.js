@@ -1,73 +1,90 @@
 const Blog = require("../models/Blog");
-const { errorHandler } = require('../helpers/dbErrorHandler')
+const { errorHandler } = require("../helpers/dbErrorHandler");
 
 exports.readOne = (req, res) => {
-    res.json('blog hello world');
-}
+  res.json("blog hello world");
+};
 
 exports.readAll = async (req, res) => {
-    try {
-        var blogs = await Blog.find({}).populate("categories").exec();
+  try {
+    var blogs = await Blog.find({}).populate("categories").exec();
 
-        var prototype = Object.keys(Blog.schema.paths)
+    var prototype = Object.keys(Blog.schema.paths);
 
-        if (Blog.schema.$timestamps) {
-            prototype = prototype.concat(["updatedAt", "createdAt"])
-        }
-
-        return res.json({ blogs, prototype });
-
-    }
-    catch (e) {
-
-        return res.status(400).json({
-            err: errorHandler(e)
-        });
-
+    if (Blog.schema.$timestamps) {
+      prototype = prototype.concat(["updatedAt", "createdAt"]);
     }
 
-}
+    return res.json({ blogs, prototype });
+  } catch (e) {
+    return res.status(400).json({
+      err: errorHandler(e),
+    });
+  }
+};
 
 exports.create = async function (req, res, next) {
-
-    try {
-        var blog = await Blog.findOne({ slug: req.body.slug });
-        if (blog) {
-            return res.status(400).json({
-                err: ['Title is taken'],
-            })
-        }
-
-        // await uploadImage(req, res, next, "blog");
-
-        var newBlog = await Blog.createBlog(req.body);
-        await newBlog.save();
-
-        res.status(200).json({ newBlog });
-
-    } catch (e) {
-
-        return res.status(400).json({
-            err: errorHandler(e)
-        });
-
+  try {
+    var blog = await Blog.findOne({ slug: req.body.slug });
+    if (blog) {
+      return res.status(400).json({
+        err: ["Title is taken"],
+      });
     }
 
-}
+    // await uploadImage(req, res, next, "blog");
+
+    var newBlog = await Blog.createBlog(req.body);
+    await newBlog.save();
+
+    res.status(200).json({ newBlog });
+  } catch (e) {
+    return res.status(400).json({
+      err: errorHandler(e),
+    });
+  }
+};
+
+exports.editOne = async function (req, res, next) {
+  try {
+    var blog = await Blog.findOne({ _id: req.body._id });
+    if (blog) {
+      // await uploadImage(req, res, next, "blog");
+      // var newBlog = await Blog.createBlog(req.body);
+      blog.editBlog(req.body);
+      await blog.save();
+
+      res.status(200).json({ blog });
+    } else {
+      return res.status(400).json({
+        err: ["No blog found"],
+      });
+    }
+  } catch (e) {
+    return res.status(400).json({
+      err: errorHandler(e),
+    });
+  }
+};
 
 exports.deleteSelected = async function (req, res) {
-    var selectedIDs = req.body.selected.map((blog) => {
-        return blog.id
-    });
+  var selectedIDs = await Promise.all(
+    req.body.selected.map(async (blog) => {
+      var blogToDelete = await Blog.findOne({ slug: blog.title.toLowerCase() });
+      return blogToDelete.id;
+    })
+  );
 
-    try {
-        await Blog.deleteMany({
-            _id: {
-                $in: selectedIDs
-            }
-        })
-    } catch (e) {
-        res.json({ errors: [{ message: "Error deleting blog articles in database" }] })
-    }
-    res.json({ message: "Deleted blogs successfully" })
-}
+  try {
+    await Blog.deleteMany({
+      _id: {
+        $in: selectedIDs,
+      },
+    });
+  } catch (e) {
+    res.json({
+      errors: [{ message: "Error deleting blog articles in database" }],
+    });
+  }
+  res.json({ message: "Deleted blogs successfully" });
+};

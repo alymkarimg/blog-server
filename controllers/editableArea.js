@@ -1,4 +1,5 @@
 var EditableArea = require('../models/editableArea');
+const Menu = require('../models/menu')
 var async = require('async');
 const AWS = require('aws-sdk');
 
@@ -10,33 +11,32 @@ exports.createPage = async function (req, res, next){
 }
 
 exports.loadEditableArea = async function (req, res, next) {
-    if(req.body.pathname != "page"){
+        // if all menuitems contains a URL with the pathname, create an editable area
         var editableArea = await EditableArea.findOne({ pathname: req.body.pathname, guid: req.body.guid });
         if (editableArea) {
             res.json(editableArea);
-        } else {
-            editableArea = new EditableArea({
-                content: "<p>Coming Soon</p>",
-                pathname: req.body.pathname,
-                guid: req.body.guid,
-                link: req.body.link
-    
-            })
-            editableArea.save();
-            res.json(editableArea)
-        }
-    }
-    else {
-        var editableArea = await EditableArea.findOne({ pathname: req.body.pathname, guid: req.body.guid });
-        if (editableArea) {
-            res.json(editableArea);
-        } else {
+        } 
+        var menuitems = await Menu.find({url:req.query.pathname});
+        if (!menuitems && req.query.pathname == "page" || req.query.pathname == "~page" || req.query.pathname == "~/page"){
             res.json({
                 message: "no page with that URL was found"
             })
         }
+
+        var editableArea = await EditableArea.findOne({ pathname: req.body.pathname, guid: req.body.guid });
+        if (editableArea) {
+        res.json(editableArea);
+        } else {
+        editableArea = new EditableArea({
+            content: "<p>Coming Soon</p>",
+            pathname: req.body.pathname,
+            guid: req.body.guid,
+            link: req.body.link
+        })
+        editableArea.save();
+        res.json(editableArea)
     }
-}
+};
 
 exports.saveEditableArea = async function (req, res, next) {
 

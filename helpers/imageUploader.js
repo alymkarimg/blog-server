@@ -65,7 +65,7 @@ exports.uploadBannerImages = async function (req, res, next) {
     if (req.files) {
         var fileProps;
         await Promise.all(Object.getOwnPropertyNames(req.files).map(async (title, index) => {
-            fileProps = title.split(' ')
+            fileProps = title.split('::')
             var bannerItem = await AnimatedBannerItem.findOne({ pathname: fileProps[0], guid: fileProps[1] })
             console.log(req.files[title])
             if (req.files[title] != undefined) {
@@ -103,16 +103,17 @@ exports.uploadImage = async function (req, res, next) {
         let file;
         req.urls = [];
         await Promise.all(
-            Object.keys(files).map(async (fileProperty) => {
+            Object.keys(req.files).map(async (fileProperty) => {
                 let fileId = uuid.v4();
                 let filename
                 if (fileProperty.type == "video/mp4") {
-                    filename = `photos/${req.body.animatedBanner.title}/${req.body.animatedBanner.items.guid}/${fileId}.mp4`;
+                    filename = `videos/${fileId}.mp4`;
                 }
-                filename = `photos/${req.body.animatedBanner.title}/${req.body.animatedBanner.items.guid}/${fileId}.jpg`;
+                filename = `photos/${fileId}.jpg`;
                 file = req.files[fileProperty]
                 if(file){
                     await uploadToS3(req, file, filename)
+                    res.json(req.urls[0])
                 }
             })
         )
