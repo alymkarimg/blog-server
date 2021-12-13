@@ -133,6 +133,12 @@ const blogValidator = [
 
 ]
 
+const productValidator = [
+    check('title', 'Title is required').notEmpty(),
+    check('price', 'Price is required').notEmpty(),
+    check('countInStock', 'Stock count is required').notEmpty(),
+]
+
 module.exports = {
     validate,
     userSignUpValidator,
@@ -142,5 +148,6 @@ module.exports = {
     resetPasswordValidator,
     bannerValidator,
     categoryCreateValidator,
-    blogValidator
+    blogValidator,
+    productValidator
 }

@@ -28,7 +28,7 @@ const uniqueMessage = error => {
 /**
  * Get the erroror message from error object
  */
-exports.errorHandler = error => {
+exports.errorHandler = (error, req, res) => {
 
     let messages = [];
 

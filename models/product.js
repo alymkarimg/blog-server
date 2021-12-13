@@ -1,3 +1,4 @@
+const { hasBrowserCrypto } = require("google-auth-library/build/src/crypto/crypto")
 const mongoose =require ("mongoose")
 
 const reviewSchema = mongoose.Schema(
@@ -18,31 +19,20 @@ const reviewSchema = mongoose.Schema(
 
 const productSchema = mongoose.Schema(
   {
-    user: {
+    title: {
+      type: String,
+      required: true,
+    },
+    slug: {
+      type: String,
+      required: true,
+    },
+    categories: [{
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
       required: true,
-      ref: 'User',
-    },
-    name: {
-      type: String,
-      required: true,
-    },
-    image: {
-      type: String,
-      required: true,
-    },
-    brand: {
-      type: String,
-      required: true,
-    },
-    category: {
-      type: String,
-      required: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
+      index: true
+  }],
     reviews: [reviewSchema],
     rating: {
       type: Number,
@@ -69,5 +59,37 @@ const productSchema = mongoose.Schema(
     timestamps: true,
   }
 )
+
+productSchema.statics.createProduct = async function (body) {
+
+  if(body.categories){
+      var categories = await Category.find({slug: {$in: body.categories}})
+  }
+
+  var product = new this({
+      title: body.title,
+      slug: body.slug,
+      categories: categories,
+      price: body.price,
+      countInStock: body.countInStock
+  })
+
+  return product;
+}
+
+productSchema.methods.editProduct = async function (body) {
+
+  if(body.categories){
+      var categories = await Category.find({slug: {$in: body.categories}})
+  }
+      var product = this
+      product.title =  body.title,
+      product.slug = body.slug,
+      product.categories = categories,
+      product.price =  body.price,
+      product.countInStock= body.countInStock
+
+  return product;
+}
 
 module.exports = mongoose.model('Product', productSchema)

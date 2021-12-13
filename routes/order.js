@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { addOrderItems, getOrderById, updateOrderToPaid, updateOrderToDelivered, getMyOrders, getOrders } = require('../controllers/orderController');
+const { addOrderItems, getOrderById, updateOrderToPaid, updateOrderToDelivered, getMyOrders, getOrders } = require('../controllers/order');
 const { requireSignin, isAdmin, validateAuthToken } = require('../controllers/auth');
 // router.post('/create', requireSignin, validateAuthToken, isAdmin, parse, blogValidator, validate, create )
 
