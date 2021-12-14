@@ -1,8 +1,13 @@
 const Product = require("../models/Product");
 const { errorHandler } = require("../helpers/dbErrorHandler");
 
-exports.readOne = (req, res) => {
-  res.json("Product hello world");
+exports.readOne = async (req, res) => {
+  var product = await Product.findOne({ slug: req.body.slug });
+    if (product) {
+      return res.status(400).json({
+        err: ["Title is taken"],
+      });
+    }
 };
 
 exports.readAll = async (req, res) => {
