@@ -26,6 +26,7 @@ const productSchema = mongoose.Schema(
     slug: {
       type: String,
       required: true,
+      unique: true
     },
     categories: [{
       type: mongoose.Schema.Types.ObjectId,
