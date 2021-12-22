@@ -1,7 +1,7 @@
 const Blog = require("../models/blog");
 const { errorHandler } = require("../helpers/dbErrorHandler");
 
-exports.readOne = (req, res) => {
+exports.readOne = async (req, res) => {
   var blog = await Blog.findOne({ slug: req.params.slug });
   if (blog) {
     return res.status(200).json({
