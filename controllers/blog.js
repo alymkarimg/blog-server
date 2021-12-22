@@ -2,7 +2,17 @@ const Blog = require("../models/blog");
 const { errorHandler } = require("../helpers/dbErrorHandler");
 
 exports.readOne = (req, res) => {
-  res.json("blog hello world");
+  var blog = await Blog.findOne({ slug: req.params.slug });
+  if (blog) {
+    return res.status(200).json({
+      blog
+    });
+  }
+  else {
+    return res.status(400).json({
+      err: ["Title is taken"],
+    });
+  }
 };
 
 exports.readAll = async (req, res) => {
