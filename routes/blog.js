@@ -10,7 +10,7 @@ var { blogValidator, validate } = require('../helpers/validator')
 
 
 // load one blog article
-router.get('/:title/:id', readOne)
+router.get('/:slug', readOne)
 
 // load all blog articles
 router.get('/', readAll)
