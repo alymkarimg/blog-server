@@ -10,6 +10,7 @@ const animatedBanner = require('../models/animatedBanner');
 const { uploadBannerImages, uploadBannerImageURLs } = require('../helpers/imageUploader')
 
 exports.loadAnimatedBanner = async function (req, res, next) {
+    //TODO: use not findOne but find method of mongoose to get an array of elements and pass them to FE side as a sindle api call
     var animatedBanner = await AnimatedBanner.findOne({ title: req.params.title });
 
     // if there is no editable area, create one
@@ -163,7 +164,7 @@ exports.deleteSlide = async function (req, res) {
                 var items = await array_values(banner.items)
 
                 await Promise.all(items.map(async (item, index) => {
-                    
+
                     await item.save();
                 }))
 
