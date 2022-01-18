@@ -12,13 +12,7 @@ exports.createPage = async function (req, res, next) {
 
 exports.loadEditableArea = async function (editableArea, url) {
   // if all menuitems contains a URL with the pathname, create an editable area
-<<<<<<< HEAD
   var menuitem = await Menu.findOne({ url :url.substring(1) });
-=======
-  //TODO: get all data in single api call using find
-
-  var menuitem = await Menu.findOne({ url: req.body.url.substring(1) });
->>>>>>> cba46a8f605e8ac2fdc7da8037053899d45a8772
   if (
     (menuitem && editableArea && editableArea.isEditablePage == true) ||
     editableArea && editableArea.isEditablePage == false
