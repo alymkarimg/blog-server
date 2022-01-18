@@ -3,7 +3,7 @@ const router = express.Router();
 
 // contollers and helpers
 const { requireSignin, validateAuthToken, isAdmin } = require('../controllers/auth');
-const { loadAnimatedBanner, create, addSlides, deleteSlide, saveAnimatedBanners } = require('../controllers/banner');
+const { loadAnimatedBanner, loadAllAnimatedBanners, create, addSlides, deleteSlide, saveAnimatedBanners } = require('../controllers/banner');
 const { parse } = require('../helpers/formParser');
 var { bannerValidator, validate } = require('../helpers/validator');
 
@@ -18,7 +18,10 @@ router.post('/save', requireSignin, isAdmin, parse, saveAnimatedBanners)
 // delete current slide
 router.post('/delete', parse, deleteSlide)
 
+// // load the animated banner
+// router.post('/:title', parse, loadAnimatedBanner)
+
 // load the animated banner
-router.post('/:title', parse, loadAnimatedBanner)
+router.post('/loadAllAnimatedBanners', parse, loadAllAnimatedBanners)
 
 module.exports = router;

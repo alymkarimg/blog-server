@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
 
-const { saveEditableArea, loadEditableArea, createPage } = require('../controllers/editableArea');
+const { saveEditableArea, loadEditableArea, loadAllEditableAreas, createPage } = require('../controllers/editableArea');
 const { uploadImage } = require('../helpers/imageUploader');
 const { requireSignin, isAdmin } = require('../controllers/auth');
 const { parse } = require('../helpers/formParser');
 
-// load all editable areas on the page
-router.post('/', parse, loadEditableArea)
+// router.post('/', parse, loadEditableArea)
+
+// load the animated banner
+router.post('/loadAllEditableAreas', parse, loadAllEditableAreas)
 
 // save all editable areas on page
 router.post('/save', requireSignin, isAdmin, parse, saveEditableArea)

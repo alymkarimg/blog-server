@@ -1,5 +1,8 @@
-const { hasBrowserCrypto } = require("google-auth-library/build/src/crypto/crypto")
-const mongoose =require ("mongoose")
+const {
+  hasBrowserCrypto,
+} = require("google-auth-library/build/src/crypto/crypto");
+const mongoose = require("mongoose");
+const Category = require("./category");
 
 const reviewSchema = mongoose.Schema(
   {
@@ -9,13 +12,13 @@ const reviewSchema = mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: 'User',
+      ref: "User",
     },
   },
   {
     timestamps: true,
   }
-)
+);
 
 const productSchema = mongoose.Schema(
   {
@@ -26,14 +29,16 @@ const productSchema = mongoose.Schema(
     slug: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
     },
-    categories: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Category',
-      required: true,
-      index: true
-  }],
+    categories: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Category",
+        required: true,
+        index: true,
+      },
+    ],
     reviews: [reviewSchema],
     rating: {
       type: Number,
@@ -59,38 +64,40 @@ const productSchema = mongoose.Schema(
   {
     timestamps: true,
   }
-)
+);
 
 productSchema.statics.createProduct = async function (body) {
-
-  if(body.categories){
-      var categories = await Category.find({slug: {$in: body.categories}})
+  if (body.categories) {
+    let cats = body.categories.split(",");
+    var categories = await Category.find({
+      slug: { $in: cats },
+    });
   }
 
   var product = new this({
-      title: body.title,
-      slug: body.slug,
-      categories: categories,
-      price: body.price,
-      countInStock: body.countInStock
-  })
+    title: body.title,
+    slug: body.slug,
+    categories: categories,
+    price: body.price,
+    countInStock: body.countInStock,
+  });
 
   return product;
-}
+};
 
 productSchema.methods.editProduct = async function (body) {
-
-  if(body.categories){
-      var categories = await Category.find({slug: {$in: body.categories}})
+  if (body.categories) {
+    let cats = body.categories.split(",");
+    var categories = await Category.find({ slug: { $in: cats } });
   }
-      var product = this
-      product.title =  body.title,
-      product.slug = body.slug,
-      product.categories = categories,
-      product.price =  body.price,
-      product.countInStock= body.countInStock
+  var product = this;
+  product.title = body.title;
+  product.slug = body.slug;
+  product.categories = categories;
+  product.price = body.price;
+  product.countInStock = body.countInStock;
 
   return product;
-}
+};
 
-module.exports = mongoose.model('Product', productSchema)
+module.exports = mongoose.model("Product", productSchema);

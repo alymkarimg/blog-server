@@ -46,6 +46,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    // change to categories
     category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',

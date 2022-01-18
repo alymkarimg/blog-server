@@ -5,10 +5,9 @@ exports.readOne = async (req, res) => {
   var blog = await Blog.findOne({ slug: req.params.slug });
   if (blog) {
     return res.status(200).json({
-      blog
+      blog,
     });
-  }
-  else {
+  } else {
     return res.status(400).json({
       err: ["Title is taken"],
     });
@@ -36,21 +35,20 @@ exports.readAll = async (req, res) => {
 exports.create = async function (req, res, next) {
   try {
     var blog = await Blog.findOne({ slug: req.body.slug });
-    if (blog) {
+    if (!blog) {
+      var newBlog = await Blog.createBlog(req.body);
+      await newBlog.save();
+
+      res.status(200).json({ newBlog });
+    } else {
       return res.status(400).json({
         err: ["Title is taken"],
       });
     }
-
     // await uploadImage(req, res, next, "blog");
-
-    var newBlog = await Blog.createBlog(req.body);
-    await newBlog.save();
-
-    res.status(200).json({ newBlog });
   } catch (e) {
     return res.status(400).json({
-      err: errorHandler(e),
+      err: e,
     });
   }
 };

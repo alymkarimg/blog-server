@@ -83,5 +83,14 @@ menuSchema.statics.createMenuItem = async function (body) {
     return menu;
 }
 
+menuSchema.methods.editMenuItem = async function (body) {
+    var menu = this;
+    menu.title = body.title;
+    menu.url = body.url;
+  
+    return menu;
+  };
+  
+
 
 module.exports = mongoose.model('Menu', menuSchema)

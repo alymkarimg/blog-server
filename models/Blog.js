@@ -44,7 +44,8 @@ const blogSchema = new mongoose.Schema({
 blogSchema.statics.createBlog = async function (body) {
 
     if(body.categories){
-        var categories = await Category.find({slug: {$in: body.categories}})
+        let categorySlugs = body.categories.split(',')
+        var categories = await Category.find({slug: {$in: categorySlugs }})
     }
 
     var blog = new this({
@@ -61,7 +62,7 @@ blogSchema.statics.createBlog = async function (body) {
 blogSchema.methods.editBlog = async function (body) {
 
     if(body.categories){
-        var categories = await Category.find({slug: {$in: body.categories}})
+        var categories = await Category.find({slug: {$in: body.categories.split(",")}})
     }
         var blog = this
         blog.title =  body.title,

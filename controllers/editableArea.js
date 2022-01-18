@@ -10,32 +10,46 @@ exports.createPage = async function (req, res, next) {
   res.status(200).json(page);
 };
 
-exports.loadEditableArea = async function (req, res, next) {
+exports.loadEditableArea = async function (editableArea, url) {
   // if all menuitems contains a URL with the pathname, create an editable area
-  var menuitem = await Menu.findOne({ url: req.body.url.substring(1) });
+  var menuitem = await Menu.findOne({ url :url.substring(1) });
   if (
-    (menuitem && req.body.isEditablePage == true) ||
-    req.body.isEditablePage == false
+    (menuitem && editableArea && editableArea.isEditablePage == true) ||
+    editableArea && editableArea.isEditablePage == false
   ) {
-    var editableArea = await EditableArea.findOne({
-      pathname: req.body.pathname,
-      guid: req.body.guid,
+    var EditableAreaModel = await EditableArea.findOne({
+      pathname: editableArea.pathname,
+      guid: editableArea.guid,
     });
-    if (!editableArea) {
-      editableArea = new EditableArea({
+    if (!EditableAreaModel) {
+      EditableAreaModel = new EditableArea({
         content: "<p>Coming Soon</p>",
-        pathname: req.body.pathname,
-        guid: req.body.guid,
-        link: req.body.link,
+        pathname: editableArea.pathname,
+        guid: editableArea.guid,
+        link: editableArea.link,
       });
-      editableArea.save();
+      EditableAreaModel.save();
     }
-    res.json(editableArea);
-  } else {
-    res.json({
+    return EditableAreaModel
+  } 
+  else {
+    return {
       message: "no page with that URL was found",
-    });
+      guid: editableArea.guid,
+      pathname: editableArea.pathname
+    };
   }
+};
+
+exports.loadAllEditableAreas = async function (req, res, next) {
+
+  let editableAreas = await Promise.all(
+    req.body.editableAreas.map(async (editableArea) => {
+      let editableAreaModel = exports.loadEditableArea(editableArea, req.body.url);
+      return editableAreaModel;
+    })
+  );
+  return res.json([...editableAreas]);
 };
 
 exports.saveEditableArea = async function (req, res, next) {
@@ -50,7 +64,7 @@ exports.saveEditableArea = async function (req, res, next) {
 
     // save to db
     if (
-      (editableArea && editableArea.content != element.data) ||
+      (editableArea && editableArea.content != element.data && element.data != undefined) ||
       editableArea.link != element.link
     ) {
       editableArea.content = element.data;
@@ -68,6 +82,6 @@ exports.saveEditableArea = async function (req, res, next) {
   }
 
   res.json({
-    message: "Page saved!",
+    areasToSave,
   });
 };

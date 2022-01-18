@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { model } = require('./category');
 require("dotenv").config();
 
 const editableAreaSchema = new mongoose.Schema({
