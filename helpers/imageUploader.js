@@ -60,15 +60,47 @@ const bannerUploadImage = async function (req, res, next, fileProps, title) {
 exports.uploadBannerImages = async function (req, res, next) {
   if (req.files) {
     var fileProps;
+    console.log(req.files)
     let fileProperties = Object.getOwnPropertyNames(req.files)
+    console.log(fileProperties)
     let uploadPromise = fileProperties.map(async (title, i) => {
       fileProps = title.split("::");
+      var bannerItem = await AnimatedBannerItem.findOne({
+        pathname: fileProps[0],
+        guid: fileProps[1],
+      });
       if (req.files[title] != undefined) {
         await bannerUploadImage(req, res, next, fileProps, title);
       }
+
+      if (req.urls) {
+        req.urls.forEach((urlObject) => {
+          var fileProps = urlObject.fileProps;
+          if (
+            bannerItem &&
+            fileProps[0] == bannerItem.pathname &&
+            fileProps[1] == bannerItem.guid
+          ) {
+            bannerItem.image = urlObject.url;
+          }
+        });
+      }
+      await bannerItem.save();
     })
     return await Promise.all(uploadPromise);
   }
+
+  fileProperties.map(async (title, i) => {
+    fileProps = title.split("::");
+    var bannerItem = await AnimatedBannerItem.findOne({
+      pathname: fileProps[0],
+      guid: fileProps[1],
+    });
+    if (req.files[title] != undefined) {
+      await bannerUploadImage(req, res, next, fileProps, title);
+    }
+  })
+
   await (async () => {
     next();
   });
@@ -77,15 +109,12 @@ exports.uploadBannerImages = async function (req, res, next) {
 exports.uploadBannerImageURLs = async function (req, res, next) {
   await Promise.all(
     req.urls && req.urls.map(async (urlObject) => {
-      let bannerItem = await AnimatedBannerItem.findOne({ pathname: urlObject.fileProps[0], guid: urlObject.fileProps[1] })
-      bannerItem.image = urlObject.url
-      await bannerItem.save()
-      return bannerItem
+      await AnimatedBannerItem.findOneAndUpdate(
+        { pathname: urlObject.fileProps, guid: urlObject.guid },
+        { image: urlObject.url }
+      );
     })
   );
-  await (async () => {
-    next();
-  });
 };
 
 exports.uploadImage = async function (req, res, next) {

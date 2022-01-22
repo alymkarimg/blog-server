@@ -257,11 +257,9 @@ exports.saveAnimatedBanners = async function (req, res, next) {
   await uploadBannerImages(req, res, next);
 
   // save all urls
-  if(req.urls){
-  await uploadBannerImageURLs(req, res, next);  
-  }
-  
+  await uploadBannerImageURLs(req, res, next);
+
   res.json({
-    urlsObjects: req.urls ? req.urls : [],
+    urlsObjects: req.urls,
   });
 };
