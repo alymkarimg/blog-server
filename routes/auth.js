@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const stripe = require('stripe')(process.env.SECRET_STRIPE_KEY);
+
 
 // contollers, helpers
 var { signUpEmail, accountActivation, signIn, signOut, forgotPassword, resetPassword, googleLogin, facebookLogin } = require('../controllers/auth')
