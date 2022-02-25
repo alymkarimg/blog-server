@@ -270,7 +270,7 @@ exports.resetPassword = async (req, res) => {
 exports.googleLogin = async (req, res) => {
     const { idToken } = req.body;
 
-    var response = await client.verifyIdToken({ idToken, audience: process.env.GOOGLE_CLIENT_ID })
+    var response = await client.verifyIdToken({ idToken, requiredAudience: process.env.GOOGLE_CLIENT_ID })
     const { email_verified, name, email, given_name, family_name, picture } = response.payload;
     if (email_verified) {
 
